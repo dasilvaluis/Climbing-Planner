@@ -117,21 +117,21 @@ const FRENCH_TO_UIAA = {};
 UIAA_GRADES.forEach((g,i) => { UIAA_TO_FRENCH[g] = FRENCH_GRADES[i]; FRENCH_TO_UIAA[FRENCH_GRADES[i]] = g; });
 
 const SPOTS = [
-  {name:"Băile Herculane",lat:44.876,lng:22.413,orientation:"S",rockType:"limestone",totalRoutes:95,boltCondition:"good",approachMinutes:15,grades:{"4":3,"4+":4,"5-":6,"5":10,"5+":14,"6-":16,"6":12,"6+":10,"7-":8,"7":6,"7+":4,"8-":2},notes:"Excellent winter crag, south-facing limestone. Can be crowded on weekends."},
-  {name:"Cheile Turzii",lat:46.563,lng:23.672,orientation:"E",rockType:"limestone",totalRoutes:120,boltCondition:"good",approachMinutes:20,grades:{"3+":2,"4":5,"4+":8,"5-":10,"5":15,"5+":18,"6-":20,"6":16,"6+":12,"7-":7,"7":4,"7+":2,"8-":1},notes:"One of Romania's most popular crags. Great variety, beautiful gorge."},
-  {name:"Cheile Bicazului",lat:46.793,lng:25.804,orientation:"W",rockType:"limestone",totalRoutes:70,boltCondition:"mixed",approachMinutes:25,grades:{"5":4,"5+":8,"6-":12,"6":14,"6+":10,"7-":8,"7":6,"7+":4,"8-":2,"8":2},notes:"Spectacular scenery. Some sectors have older bolts, check before climbing."},
-  {name:"Costila - Bușteni",lat:45.404,lng:25.472,orientation:"NE",rockType:"conglomerate",totalRoutes:55,boltCondition:"mixed",approachMinutes:90,grades:{"5+":3,"6-":5,"6":8,"6+":10,"7-":10,"7":8,"7+":5,"8-":3,"8":2,"8+":1},notes:"Alpine feel, long approach. Conglomerate rock, unique experience."},
-  {name:"Pietrele lui Solomon",lat:45.632,lng:25.582,orientation:"S",rockType:"limestone",totalRoutes:45,boltCondition:"good",approachMinutes:10,grades:{"4":2,"4+":4,"5-":6,"5":8,"5+":8,"6-":6,"6":5,"6+":3,"7-":2,"7":1},notes:"Close to Brașov, perfect for a quick session. Family friendly."},
-  {name:"Cheile Vârghișului",lat:46.212,lng:25.533,orientation:"NW",rockType:"limestone",totalRoutes:40,boltCondition:"old",approachMinutes:30,grades:{"5-":3,"5":5,"5+":8,"6-":8,"6":6,"6+":5,"7-":3,"7":2},notes:"Remote and quiet. Bolts need updating in several sectors."},
-  {name:"Suncuiuș",lat:46.748,lng:22.470,orientation:"SE",rockType:"limestone",totalRoutes:80,boltCondition:"good",approachMinutes:5,grades:{"3+":2,"4":6,"4+":8,"5-":10,"5":12,"5+":10,"6-":10,"6":8,"6+":6,"7-":4,"7":2,"7+":1,"8-":1},notes:"Easy access, great beginner area. Well-bolted modern sectors."},
-  {name:"Cheile Sohodolului",lat:45.153,lng:23.483,orientation:"N",rockType:"limestone",totalRoutes:35,boltCondition:"mixed",approachMinutes:20,grades:{"5+":3,"6-":5,"6":8,"6+":7,"7-":5,"7":4,"7+":2,"8-":1},notes:"Shady north face — great in summer. Varied route quality."},
-  {name:"Cheile Râmețului",lat:46.264,lng:23.572,orientation:"E",rockType:"limestone",totalRoutes:50,boltCondition:"good",approachMinutes:15,grades:{"4+":3,"5-":5,"5":8,"5+":10,"6-":8,"6":6,"6+":5,"7-":3,"7":2},notes:"Beautiful gorge, good variety of grades."},
-  {name:"Cheile Aiudului",lat:46.291,lng:23.670,orientation:"W",rockType:"limestone",totalRoutes:30,boltCondition:"mixed",approachMinutes:10,grades:{"5":4,"5+":5,"6-":6,"6":5,"6+":4,"7-":3,"7":2,"7+":1},notes:"Small but quality crag. Some older bolts in upper sectors."},
-  {name:"Cheile Nerei",lat:44.894,lng:21.822,orientation:"SW",rockType:"limestone",totalRoutes:25,boltCondition:"old",approachMinutes:40,grades:{"6-":3,"6":5,"6+":5,"7-":4,"7":4,"7+":2,"8-":1,"8":1},notes:"Wild and remote. Serious climbing, old infrastructure."},
-  {name:"Tamașul Mare",lat:46.558,lng:22.467,orientation:"S",rockType:"limestone",totalRoutes:35,boltCondition:"good",approachMinutes:10,grades:{"4":2,"4+":3,"5-":5,"5":6,"5+":6,"6-":5,"6":4,"6+":2,"7-":1,"7":1},notes:"Small friendly crag near Suncuiuș."},
-  {name:"Cheile Posăgii",lat:46.224,lng:23.340,orientation:"NE",rockType:"limestone",totalRoutes:28,boltCondition:"mixed",approachMinutes:15,grades:{"5":3,"5+":4,"6-":5,"6":6,"6+":4,"7-":3,"7":2,"7+":1},notes:"Less crowded alternative to Cheile Râmețului."},
-  {name:"Bozioru",lat:45.254,lng:26.162,orientation:"SE",rockType:"sandstone",totalRoutes:22,boltCondition:"good",approachMinutes:5,grades:{"3+":2,"4":3,"4+":4,"5-":4,"5":4,"5+":3,"6-":2},notes:"Soft sandstone, great for beginners. Unique rock formations."},
-  {name:"Peștera - Padina",lat:45.396,lng:25.433,orientation:"SW",rockType:"limestone",totalRoutes:60,boltCondition:"good",approachMinutes:20,grades:{"5-":4,"5":6,"5+":8,"6-":10,"6":10,"6+":8,"7-":6,"7":4,"7+":2,"8-":1,"8":1},notes:"High altitude crag at ~1800m. Cool in summer, season May-October."}
+  {name:"Băile Herculane",lat:44.876,lng:22.413,orientation:["S","SE"],rockType:"limestone",totalRoutes:95,boltCondition:"good",approachMinutes:15,grades:{"4":3,"4+":4,"5-":6,"5":10,"5+":14,"6-":16,"6":12,"6+":10,"7-":8,"7":6,"7+":4,"8-":2},notes:"Excellent winter crag, south-facing limestone. Can be crowded on weekends."},
+  {name:"Cheile Turzii",lat:46.563,lng:23.672,orientation:["E","SE","S"],rockType:"limestone",totalRoutes:120,boltCondition:"good",approachMinutes:20,grades:{"3+":2,"4":5,"4+":8,"5-":10,"5":15,"5+":18,"6-":20,"6":16,"6+":12,"7-":7,"7":4,"7+":2,"8-":1},notes:"One of Romania's most popular crags. Great variety, beautiful gorge."},
+  {name:"Cheile Bicazului",lat:46.793,lng:25.804,orientation:["W","NW"],rockType:"limestone",totalRoutes:70,boltCondition:"mixed",approachMinutes:25,grades:{"5":4,"5+":8,"6-":12,"6":14,"6+":10,"7-":8,"7":6,"7+":4,"8-":2,"8":2},notes:"Spectacular scenery. Some sectors have older bolts, check before climbing."},
+  {name:"Costila - Bușteni",lat:45.404,lng:25.472,orientation:["NE","E"],rockType:"conglomerate",totalRoutes:55,boltCondition:"mixed",approachMinutes:90,grades:{"5+":3,"6-":5,"6":8,"6+":10,"7-":10,"7":8,"7+":5,"8-":3,"8":2,"8+":1},notes:"Alpine feel, long approach. Conglomerate rock, unique experience."},
+  {name:"Pietrele lui Solomon",lat:45.632,lng:25.582,orientation:["S","SW"],rockType:"limestone",totalRoutes:45,boltCondition:"good",approachMinutes:10,grades:{"4":2,"4+":4,"5-":6,"5":8,"5+":8,"6-":6,"6":5,"6+":3,"7-":2,"7":1},notes:"Close to Brașov, perfect for a quick session. Family friendly."},
+  {name:"Cheile Vârghișului",lat:46.212,lng:25.533,orientation:["NW"],rockType:"limestone",totalRoutes:40,boltCondition:"old",approachMinutes:30,grades:{"5-":3,"5":5,"5+":8,"6-":8,"6":6,"6+":5,"7-":3,"7":2},notes:"Remote and quiet. Bolts need updating in several sectors."},
+  {name:"Suncuiuș",lat:46.748,lng:22.470,orientation:["SE","S","E"],rockType:"limestone",totalRoutes:80,boltCondition:"good",approachMinutes:5,grades:{"3+":2,"4":6,"4+":8,"5-":10,"5":12,"5+":10,"6-":10,"6":8,"6+":6,"7-":4,"7":2,"7+":1,"8-":1},notes:"Easy access, great beginner area. Well-bolted modern sectors."},
+  {name:"Cheile Sohodolului",lat:45.153,lng:23.483,orientation:["N","NE"],rockType:"limestone",totalRoutes:35,boltCondition:"mixed",approachMinutes:20,grades:{"5+":3,"6-":5,"6":8,"6+":7,"7-":5,"7":4,"7+":2,"8-":1},notes:"Shady north face — great in summer. Varied route quality."},
+  {name:"Cheile Râmețului",lat:46.264,lng:23.572,orientation:["E","SE"],rockType:"limestone",totalRoutes:50,boltCondition:"good",approachMinutes:15,grades:{"4+":3,"5-":5,"5":8,"5+":10,"6-":8,"6":6,"6+":5,"7-":3,"7":2},notes:"Beautiful gorge, good variety of grades."},
+  {name:"Cheile Aiudului",lat:46.291,lng:23.670,orientation:["W"],rockType:"limestone",totalRoutes:30,boltCondition:"mixed",approachMinutes:10,grades:{"5":4,"5+":5,"6-":6,"6":5,"6+":4,"7-":3,"7":2,"7+":1},notes:"Small but quality crag. Some older bolts in upper sectors."},
+  {name:"Cheile Nerei",lat:44.894,lng:21.822,orientation:["SW","W"],rockType:"limestone",totalRoutes:25,boltCondition:"old",approachMinutes:40,grades:{"6-":3,"6":5,"6+":5,"7-":4,"7":4,"7+":2,"8-":1,"8":1},notes:"Wild and remote. Serious climbing, old infrastructure."},
+  {name:"Tamașul Mare",lat:46.558,lng:22.467,orientation:["S","SE"],rockType:"limestone",totalRoutes:35,boltCondition:"good",approachMinutes:10,grades:{"4":2,"4+":3,"5-":5,"5":6,"5+":6,"6-":5,"6":4,"6+":2,"7-":1,"7":1},notes:"Small friendly crag near Suncuiuș."},
+  {name:"Cheile Posăgii",lat:46.224,lng:23.340,orientation:["NE","E"],rockType:"limestone",totalRoutes:28,boltCondition:"mixed",approachMinutes:15,grades:{"5":3,"5+":4,"6-":5,"6":6,"6+":4,"7-":3,"7":2,"7+":1},notes:"Less crowded alternative to Cheile Râmețului."},
+  {name:"Bozioru",lat:45.254,lng:26.162,orientation:["SE"],rockType:"sandstone",totalRoutes:22,boltCondition:"good",approachMinutes:5,grades:{"3+":2,"4":3,"4+":4,"5-":4,"5":4,"5+":3,"6-":2},notes:"Soft sandstone, great for beginners. Unique rock formations."},
+  {name:"Peștera - Padina",lat:45.396,lng:25.433,orientation:["SW","S","W"],rockType:"limestone",totalRoutes:60,boltCondition:"good",approachMinutes:20,grades:{"5-":4,"5":6,"5+":8,"6-":10,"6":10,"6+":8,"7-":6,"7":4,"7+":2,"8-":1,"8":1},notes:"High altitude crag at ~1800m. Cool in summer, season May-October."}
 ];
 
 let gradeSystem = 'uiaa';
@@ -194,8 +194,7 @@ function setGradeSystem(sys) {
   updateMap();
 }
 
-function getOrientationScore(orientation, date, pref) {
-  if (pref === 'none') return 1;
+function singleOrientScore(orientation, date, pref) {
   const month = new Date(date).getMonth();
   const isCold = month >= 9 || month <= 2;
   const isHot = month >= 5 && month <= 7;
@@ -211,8 +210,13 @@ function getOrientationScore(orientation, date, pref) {
   return 0.7;
 }
 
-function getOrientationLabel(orientation, date, pref) {
-  const s = getOrientationScore(orientation, date, pref);
+function getOrientationScore(orientations, date, pref) {
+  if (pref === 'none') return 1;
+  return Math.max(...orientations.map(o => singleOrientScore(o, date, pref)));
+}
+
+function getOrientationLabel(orientations, date, pref) {
+  const s = getOrientationScore(orientations, date, pref);
   if (s >= 0.8) return ['Great','#27ae60'];
   if (s >= 0.5) return ['OK','#f39c12'];
   return ['Poor','#e74c3c'];
@@ -305,6 +309,7 @@ function buildPopup(spot, weather) {
   const [orientLabel, orientColor] = getOrientationLabel(spot.orientation, date, sunPref);
   const routesInRange = getRoutesInRange(spot);
   const boltClass = `bolt-${spot.boltCondition}`;
+  const orientDisplay = spot.orientation.join(', ');
 
   let weatherHtml = '';
   if (weather) {
@@ -319,7 +324,7 @@ function buildPopup(spot, weather) {
   return `<div class="spot-popup">
     <h3>${spot.name}</h3>
     <div class="meta">
-      <b>Orientation:</b> ${spot.orientation} <span class="orient-score" style="background:${orientColor}20;color:${orientColor}">${orientLabel}</span><br>
+      <b>Orientation:</b> ${orientDisplay} <span class="orient-score" style="background:${orientColor}20;color:${orientColor}">${orientLabel}</span><br>
       <b>Rock:</b> ${spot.rockType} · <b>Routes:</b> ${spot.totalRoutes} (${routesInRange} in range)<br>
       <b>Bolts:</b> <span class="bolt-badge ${boltClass}">${spot.boltCondition}</span> · <b>Approach:</b> ${spot.approachMinutes} min
     </div>
