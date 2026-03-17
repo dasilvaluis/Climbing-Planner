@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekend Climbing Planner</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;height:100vh;overflow:hidden;background:#1a1a2e}
+#panel{width:320px;background:#16213e;color:#e0e0e0;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;border-right:1px solid #0f3460;transition:transform .3s ease}
+#drawer-toggle{display:none;position:absolute;top:12px;left:12px;z-index:1100;background:#16213e;color:#e94560;border:1px solid #0f3460;border-radius:8px;width:40px;height:40px;font-size:20px;cursor:pointer;align-items:center;justify-content:center}
+#panel-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999}
+@media(max-width:768px){
+  #drawer-toggle{display:flex}
+  #panel{position:fixed;top:0;left:0;height:100%;z-index:1000;transform:translateX(-100%)}
+  #panel.open{transform:translateX(0)}
+  #panel-overlay.open{display:block}
+}
+#panel h1{font-size:18px;color:#e94560;margin-bottom:4px}
+#panel h2{font-size:11px;font-weight:400;color:#888;margin-bottom:8px}
+.filter-group{background:#0f3460;border-radius:8px;padding:12px}
+.filter-group label{display:block;font-size:12px;color:#a0a0c0;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+input[type=date],select{width:100%;padding:8px;border-radius:6px;border:1px solid #1a1a4e;background:#16213e;color:#e0e0e0;font-size:13px}
+.grade-range{display:flex;gap:8px;align-items:center}
+.grade-range select{flex:1}
+.grade-range span{color:#666;font-size:12px}
+.toggle-row{display:flex;align-items:center;gap:8px;font-size:13px}
+.toggle-btn{padding:4px 10px;border-radius:4px;border:1px solid #1a1a4e;background:#16213e;color:#888;cursor:pointer;font-size:12px;transition:.2s}
+.toggle-btn.active{background:#e94560;color:#fff;border-color:#e94560}
+.bolt-checks{display:flex;gap:10px;flex-wrap:wrap}
+.bolt-checks label{display:flex;align-items:center;gap:4px;font-size:12px;color:#ccc;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0}
+.bolt-checks input{accent-color:#e94560}
+.sun-select select{width:100%}
+#summary{font-size:12px;color:#888;padding:4px 0;text-align:center}
+#map{flex:1;height:100vh;min-height:100%;z-index:0}
+.spot-popup{font-family:-apple-system,sans-serif;min-width:260px;max-width:300px}
+.spot-popup h3{margin:0 0 6px;font-size:15px;color:#1a1a2e}
+.spot-popup .meta{font-size:12px;color:#555;margin-bottom:8px;line-height:1.5}
+.spot-popup .meta b{color:#333}
+.spot-popup .weather-info{background:#f0f4ff;border-radius:6px;padding:8px;margin:8px 0;font-size:12px}
+.spot-popup .weather-info .temp{font-size:16px;font-weight:700;color:#e94560}
+.spot-popup .weather-info .rain{color:#4a6fa5}
+.histo{display:flex;align-items:flex-end;gap:2px;height:50px;margin:8px 0 4px}
+.histo-bar{display:flex;flex-direction:column;align-items:center;flex:1;justify-content:flex-end;height:100%}
+.histo-bar .bar{width:100%;border-radius:2px 2px 0 0;min-height:1px;transition:.2s;position:relative}
+.histo-bar .count{font-size:8px;color:#333;font-weight:600;margin-bottom:1px}
+.histo-bar .lbl{font-size:7px;color:#888;margin-top:2px;white-space:nowrap;transform:rotate(-45deg);transform-origin:center}
+.histo-title{font-size:11px;color:#888;font-weight:600}
+.bolt-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600}
+.bolt-good{background:#d4edda;color:#155724}
+.bolt-mixed{background:#fff3cd;color:#856404}
+.bolt-old{background:#f8d7da;color:#721c24}
+.notes{font-size:11px;color:#666;font-style:italic;margin-top:6px;border-top:1px solid #eee;padding-top:6px}
+.orient-score{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600}
+.leaflet-popup-content-wrapper{border-radius:10px}
+.leaflet-popup-content{margin:12px}
+.legend{position:absolute;bottom:20px;right:20px;background:rgba(22,33,62,.92);color:#e0e0e0;padding:12px;border-radius:8px;font-size:11px;z-index:1000;line-height:1.8}
+.legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+</style>
+</head>
+<body>
+<button id="drawer-toggle" onclick="togglePanel()">☰</button>
+<div id="panel-overlay" onclick="togglePanel()"></div>
+<div id="panel">
+  <div>
+    <h1>🧗 Climbing Planner</h1>
+    <h2>Pick your weekend spot</h2>
+  </div>
+  <div class="filter-group">
+    <label>Date</label>
+    <input type="date" id="dateInput">
+  </div>
+  <div class="filter-group">
+    <label>Grade System</label>
+    <div class="toggle-row">
+      <button class="toggle-btn active" id="btnUIAA" onclick="setGradeSystem('uiaa')">UIAA</button>
+      <button class="toggle-btn" id="btnFrench" onclick="setGradeSystem('french')">French</button>
+    </div>
+  </div>
+  <div class="filter-group">
+    <label>Grade Range</label>
+    <div class="grade-range">
+      <select id="gradeMin"></select>
+      <span>→</span>
+      <select id="gradeMax"></select>
+    </div>
+  </div>
+  <div class="filter-group sun-select">
+    <label>Sun Preference</label>
+    <select id="sunPref">
+      <option value="auto">Auto (by season)</option>
+      <option value="sun">Prefer sun</option>
+      <option value="shade">Prefer shade</option>
+      <option value="none">Don't care</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Bolt Condition</label>
+    <div class="bolt-checks">
+      <label><input type="checkbox" value="good" checked> ✅ Good</label>
+      <label><input type="checkbox" value="mixed" checked> ⚠️ Mixed</label>
+      <label><input type="checkbox" value="old" checked> 🔴 Old</label>
+    </div>
+  </div>
+  <div id="summary">Loading spots...</div>
+</div>
+<div id="map"></div>
+
+<script>
+const UIAA_GRADES = ['3','3+','4-','4','4+','5-','5','5+','6-','6','6+','7-','7','7+','8-','8','8+','9-','9','9+','10-','10'];
+const FRENCH_GRADES = ['3a','3b','3c','4a','4b','4c','5a','5b','5c','6a','6a+','6b','6b+','6c','6c+','7a','7a+','7b','7b+','7c','7c+','8a'];
+
+const UIAA_TO_FRENCH = {};
+const FRENCH_TO_UIAA = {};
+UIAA_GRADES.forEach((g,i) => { UIAA_TO_FRENCH[g] = FRENCH_GRADES[i]; FRENCH_TO_UIAA[FRENCH_GRADES[i]] = g; });
+
+const SPOTS = [
+  {name:"Băile Herculane",lat:44.876,lng:22.413,orientation:"S",rockType:"limestone",totalRoutes:95,boltCondition:"good",approachMinutes:15,grades:{"4":3,"4+":4,"5-":6,"5":10,"5+":14,"6-":16,"6":12,"6+":10,"7-":8,"7":6,"7+":4,"8-":2},notes:"Excellent winter crag, south-facing limestone. Can be crowded on weekends."},
+  {name:"Cheile Turzii",lat:46.563,lng:23.672,orientation:"E",rockType:"limestone",totalRoutes:120,boltCondition:"good",approachMinutes:20,grades:{"3+":2,"4":5,"4+":8,"5-":10,"5":15,"5+":18,"6-":20,"6":16,"6+":12,"7-":7,"7":4,"7+":2,"8-":1},notes:"One of Romania's most popular crags. Great variety, beautiful gorge."},
+  {name:"Cheile Bicazului",lat:46.793,lng:25.804,orientation:"W",rockType:"limestone",totalRoutes:70,boltCondition:"mixed",approachMinutes:25,grades:{"5":4,"5+":8,"6-":12,"6":14,"6+":10,"7-":8,"7":6,"7+":4,"8-":2,"8":2},notes:"Spectacular scenery. Some sectors have older bolts, check before climbing."},
+  {name:"Costila - Bușteni",lat:45.404,lng:25.472,orientation:"NE",rockType:"conglomerate",totalRoutes:55,boltCondition:"mixed",approachMinutes:90,grades:{"5+":3,"6-":5,"6":8,"6+":10,"7-":10,"7":8,"7+":5,"8-":3,"8":2,"8+":1},notes:"Alpine feel, long approach. Conglomerate rock, unique experience."},
+  {name:"Pietrele lui Solomon",lat:45.632,lng:25.582,orientation:"S",rockType:"limestone",totalRoutes:45,boltCondition:"good",approachMinutes:10,grades:{"4":2,"4+":4,"5-":6,"5":8,"5+":8,"6-":6,"6":5,"6+":3,"7-":2,"7":1},notes:"Close to Brașov, perfect for a quick session. Family friendly."},
+  {name:"Cheile Vârghișului",lat:46.212,lng:25.533,orientation:"NW",rockType:"limestone",totalRoutes:40,boltCondition:"old",approachMinutes:30,grades:{"5-":3,"5":5,"5+":8,"6-":8,"6":6,"6+":5,"7-":3,"7":2},notes:"Remote and quiet. Bolts need updating in several sectors."},
+  {name:"Suncuiuș",lat:46.748,lng:22.470,orientation:"SE",rockType:"limestone",totalRoutes:80,boltCondition:"good",approachMinutes:5,grades:{"3+":2,"4":6,"4+":8,"5-":10,"5":12,"5+":10,"6-":10,"6":8,"6+":6,"7-":4,"7":2,"7+":1,"8-":1},notes:"Easy access, great beginner area. Well-bolted modern sectors."},
+  {name:"Cheile Sohodolului",lat:45.153,lng:23.483,orientation:"N",rockType:"limestone",totalRoutes:35,boltCondition:"mixed",approachMinutes:20,grades:{"5+":3,"6-":5,"6":8,"6+":7,"7-":5,"7":4,"7+":2,"8-":1},notes:"Shady north face — great in summer. Varied route quality."},
+  {name:"Cheile Râmețului",lat:46.264,lng:23.572,orientation:"E",rockType:"limestone",totalRoutes:50,boltCondition:"good",approachMinutes:15,grades:{"4+":3,"5-":5,"5":8,"5+":10,"6-":8,"6":6,"6+":5,"7-":3,"7":2},notes:"Beautiful gorge, good variety of grades."},
+  {name:"Cheile Aiudului",lat:46.291,lng:23.670,orientation:"W",rockType:"limestone",totalRoutes:30,boltCondition:"mixed",approachMinutes:10,grades:{"5":4,"5+":5,"6-":6,"6":5,"6+":4,"7-":3,"7":2,"7+":1},notes:"Small but quality crag. Some older bolts in upper sectors."},
+  {name:"Cheile Nerei",lat:44.894,lng:21.822,orientation:"SW",rockType:"limestone",totalRoutes:25,boltCondition:"old",approachMinutes:40,grades:{"6-":3,"6":5,"6+":5,"7-":4,"7":4,"7+":2,"8-":1,"8":1},notes:"Wild and remote. Serious climbing, old infrastructure."},
+  {name:"Tamașul Mare",lat:46.558,lng:22.467,orientation:"S",rockType:"limestone",totalRoutes:35,boltCondition:"good",approachMinutes:10,grades:{"4":2,"4+":3,"5-":5,"5":6,"5+":6,"6-":5,"6":4,"6+":2,"7-":1,"7":1},notes:"Small friendly crag near Suncuiuș."},
+  {name:"Cheile Posăgii",lat:46.224,lng:23.340,orientation:"NE",rockType:"limestone",totalRoutes:28,boltCondition:"mixed",approachMinutes:15,grades:{"5":3,"5+":4,"6-":5,"6":6,"6+":4,"7-":3,"7":2,"7+":1},notes:"Less crowded alternative to Cheile Râmețului."},
+  {name:"Bozioru",lat:45.254,lng:26.162,orientation:"SE",rockType:"sandstone",totalRoutes:22,boltCondition:"good",approachMinutes:5,grades:{"3+":2,"4":3,"4+":4,"5-":4,"5":4,"5+":3,"6-":2},notes:"Soft sandstone, great for beginners. Unique rock formations."},
+  {name:"Peștera - Padina",lat:45.396,lng:25.433,orientation:"SW",rockType:"limestone",totalRoutes:60,boltCondition:"good",approachMinutes:20,grades:{"5-":4,"5":6,"5+":8,"6-":10,"6":10,"6+":8,"7-":6,"7":4,"7+":2,"8-":1,"8":1},notes:"High altitude crag at ~1800m. Cool in summer, season May-October."}
+];
+
+let gradeSystem = 'uiaa';
+let weatherCache = {};
+let map, markers = [];
+
+function togglePanel(){
+  document.getElementById('panel').classList.toggle('open');
+  document.getElementById('panel-overlay').classList.toggle('open');
+  setTimeout(()=>map&&map.invalidateSize(),350);
+}
+
+function getNextSaturday() {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = (6 - day + 7) % 7 || 7;
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().split('T')[0];
+}
+
+function populateGradeSelects() {
+  const grades = gradeSystem === 'uiaa' ? UIAA_GRADES : FRENCH_GRADES;
+  const minSel = document.getElementById('gradeMin');
+  const maxSel = document.getElementById('gradeMax');
+  const minVal = minSel.value;
+  const maxVal = maxSel.value;
+  minSel.innerHTML = maxSel.innerHTML = '';
+  grades.forEach(g => {
+    minSel.add(new Option(g, g));
+    maxSel.add(new Option(g, g));
+  });
+  const minDef = gradeSystem === 'uiaa' ? '4' : '4a';
+  const maxDef = gradeSystem === 'uiaa' ? '8' : '7a';
+  minSel.value = convertGrade(minVal) || minDef;
+  maxSel.value = convertGrade(maxVal) || maxDef;
+  if (!minSel.value) minSel.selectedIndex = 3;
+  if (!maxSel.value) maxSel.selectedIndex = grades.length - 5;
+}
+
+function convertGrade(g) {
+  if (!g) return null;
+  if (gradeSystem === 'uiaa') return FRENCH_TO_UIAA[g] || null;
+  return UIAA_TO_FRENCH[g] || null;
+}
+
+function displayGrade(uiaaGrade) {
+  return gradeSystem === 'french' ? (UIAA_TO_FRENCH[uiaaGrade] || uiaaGrade) : uiaaGrade;
+}
+
+function toUiaaIndex(g) {
+  if (gradeSystem === 'uiaa') return UIAA_GRADES.indexOf(g);
+  return FRENCH_GRADES.indexOf(g);
+}
+
+function setGradeSystem(sys) {
+  gradeSystem = sys;
+  document.getElementById('btnUIAA').classList.toggle('active', sys === 'uiaa');
+  document.getElementById('btnFrench').classList.toggle('active', sys === 'french');
+  populateGradeSelects();
+  updateMap();
+}
+
+function getOrientationScore(orientation, date, pref) {
+  if (pref === 'none') return 1;
+  const month = new Date(date).getMonth();
+  const isCold = month >= 9 || month <= 2;
+  const isHot = month >= 5 && month <= 7;
+  const sunOrients = ['S','SE','SW'];
+  const shadeOrients = ['N','NE','NW'];
+  const isSunny = sunOrients.includes(orientation);
+  const isShady = shadeOrients.includes(orientation);
+  if (pref === 'sun') return isSunny ? 1 : isShady ? 0.2 : 0.6;
+  if (pref === 'shade') return isShady ? 1 : isSunny ? 0.2 : 0.6;
+  if (isCold) return isSunny ? 1 : isShady ? 0.2 : 0.6;
+  if (isHot) return isShady ? 1 : isSunny ? 0.2 : 0.6;
+  if (['E','SE'].includes(orientation)) return 1;
+  return 0.7;
+}
+
+function getOrientationLabel(orientation, date, pref) {
+  const s = getOrientationScore(orientation, date, pref);
+  if (s >= 0.8) return ['Great','#27ae60'];
+  if (s >= 0.5) return ['OK','#f39c12'];
+  return ['Poor','#e74c3c'];
+}
+
+function getGradeMatchScore(spot) {
+  const minIdx = toUiaaIndex(document.getElementById('gradeMin').value);
+  const maxIdx = toUiaaIndex(document.getElementById('gradeMax').value);
+  let inRange = 0;
+  for (const [g, count] of Object.entries(spot.grades)) {
+    const idx = UIAA_GRADES.indexOf(g);
+    if (idx >= minIdx && idx <= maxIdx) inRange += count;
+  }
+  return Math.min(inRange / 15, 1);
+}
+
+function getRoutesInRange(spot) {
+  const minIdx = toUiaaIndex(document.getElementById('gradeMin').value);
+  const maxIdx = toUiaaIndex(document.getElementById('gradeMax').value);
+  let count = 0;
+  for (const [g, c] of Object.entries(spot.grades)) {
+    const idx = UIAA_GRADES.indexOf(g);
+    if (idx >= minIdx && idx <= maxIdx) count += c;
+  }
+  return count;
+}
+
+function getSelectedBolts() {
+  return [...document.querySelectorAll('.bolt-checks input:checked')].map(c => c.value);
+}
+
+function markerColor(score, rainDimmed) {
+  if (rainDimmed) return `hsl(220, 15%, 65%)`;
+  const h = score * 120;
+  return `hsl(${h}, 75%, 45%)`;
+}
+
+function createMarkerIcon(color, boltCondition, hasRain) {
+  const boltIcon = boltCondition === 'good' ? '✅' : boltCondition === 'mixed' ? '⚠️' : '🔴';
+  const rainIcon = hasRain ? '🌧️' : '';
+  return L.divIcon({
+    className: '',
+    html: `<div style="position:relative;width:28px;height:28px">
+      <svg width="28" height="28"><circle cx="14" cy="14" r="12" fill="${color}" stroke="#fff" stroke-width="2"/></svg>
+      <span style="position:absolute;top:-8px;right:-10px;font-size:10px">${boltIcon}</span>
+      ${rainIcon ? `<span style="position:absolute;bottom:-8px;right:-10px;font-size:10px">${rainIcon}</span>` : ''}
+    </div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16]
+  });
+}
+
+async function fetchWeather(lat, lng, date) {
+  const key = `${lat},${lng},${date}`;
+  if (weatherCache[key]) return weatherCache[key];
+  try {
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=precipitation_probability_max,temperature_2m_max,temperature_2m_min&timezone=Europe/Bucharest&start_date=${date}&end_date=${date}`);
+    const d = await r.json();
+    const w = {
+      rainProb: d.daily.precipitation_probability_max[0],
+      tempMax: d.daily.temperature_2m_max[0],
+      tempMin: d.daily.temperature_2m_min[0]
+    };
+    weatherCache[key] = w;
+    return w;
+  } catch { return null; }
+}
+
+function buildHistogram(spot) {
+  const minIdx = toUiaaIndex(document.getElementById('gradeMin').value);
+  const maxIdx = toUiaaIndex(document.getElementById('gradeMax').value);
+  const entries = Object.entries(spot.grades).sort((a,b) => UIAA_GRADES.indexOf(a[0]) - UIAA_GRADES.indexOf(b[0]));
+  const maxCount = Math.max(...entries.map(e => e[1]), 1);
+  let html = '<div class="histo-title">Route Distribution</div><div class="histo">';
+  for (const [g, count] of entries) {
+    const idx = UIAA_GRADES.indexOf(g);
+    const inRange = idx >= minIdx && idx <= maxIdx;
+    const h = (count / maxCount) * 100;
+    const color = inRange ? '#e94560' : '#ccc';
+    html += `<div class="histo-bar"><div class="count">${count}</div><div class="bar" style="height:${h}%;background:${color}" title="${displayGrade(g)}: ${count}"></div><div class="lbl">${displayGrade(g)}</div></div>`;
+  }
+  html += '</div>';
+  return html;
+}
+
+function buildPopup(spot, weather) {
+  const date = document.getElementById('dateInput').value;
+  const sunPref = document.getElementById('sunPref').value;
+  const [orientLabel, orientColor] = getOrientationLabel(spot.orientation, date, sunPref);
+  const routesInRange = getRoutesInRange(spot);
+  const boltClass = `bolt-${spot.boltCondition}`;
+
+  let weatherHtml = '';
+  if (weather) {
+    weatherHtml = `<div class="weather-info">
+      <span class="temp">${weather.tempMax}°C</span> <span style="font-size:11px;color:#888">(min ${weather.tempMin}°C)</span><br>
+      <span class="rain">🌧 ${weather.rainProb}% rain probability</span>
+    </div>`;
+  } else {
+    weatherHtml = '<div class="weather-info" style="color:#888">Weather unavailable</div>';
+  }
+
+  return `<div class="spot-popup">
+    <h3>${spot.name}</h3>
+    <div class="meta">
+      <b>Orientation:</b> ${spot.orientation} <span class="orient-score" style="background:${orientColor}20;color:${orientColor}">${orientLabel}</span><br>
+      <b>Rock:</b> ${spot.rockType} · <b>Routes:</b> ${spot.totalRoutes} (${routesInRange} in range)<br>
+      <b>Bolts:</b> <span class="bolt-badge ${boltClass}">${spot.boltCondition}</span> · <b>Approach:</b> ${spot.approachMinutes} min
+    </div>
+    ${weatherHtml}
+    ${buildHistogram(spot)}
+    ${spot.notes ? `<div class="notes">${spot.notes}</div>` : ''}
+  </div>`;
+}
+
+async function updateMap() {
+  const date = document.getElementById('dateInput').value;
+  const sunPref = document.getElementById('sunPref').value;
+  const bolts = getSelectedBolts();
+
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  let shown = 0;
+  const total = SPOTS.length;
+
+  for (const spot of SPOTS) {
+    if (!bolts.includes(spot.boltCondition)) continue;
+
+    const gradeScore = getGradeMatchScore(spot);
+    const orientScore = getOrientationScore(spot.orientation, date, sunPref);
+    const weather = await fetchWeather(spot.lat, spot.lng, date);
+    const rainDimmed = weather && weather.rainProb > 60;
+    const combinedScore = gradeScore * 0.7 + orientScore * 0.3;
+    const color = markerColor(combinedScore, rainDimmed);
+    const icon = createMarkerIcon(color, spot.boltCondition, rainDimmed);
+
+    const m = L.marker([spot.lat, spot.lng], {icon}).addTo(map);
+    m.bindPopup(() => buildPopup(spot, weather), {maxWidth: 320});
+    markers.push(m);
+    shown++;
+  }
+
+  document.getElementById('summary').textContent = `Showing ${shown} of ${total} spots`;
+}
+
+// Init
+document.getElementById('dateInput').value = getNextSaturday();
+populateGradeSelects();
+
+map = L.map('map',{zoomControl:true}).setView([45.9, 24.9], 7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors', maxZoom: 18
+}).addTo(map);
+setTimeout(()=>map.invalidateSize(),100);
+
+// Legend
+const legend = L.control({position: 'bottomright'});
+legend.onAdd = function() {
+  const d = L.DomUtil.create('div', 'legend');
+  d.innerHTML = `<b style="font-size:12px">Legend</b><br>
+    <span class="legend-dot" style="background:hsl(120,75%,45%)"></span>Great match<br>
+    <span class="legend-dot" style="background:hsl(60,75%,45%)"></span>Partial match<br>
+    <span class="legend-dot" style="background:hsl(0,75%,45%)"></span>Poor match<br>
+    <span class="legend-dot" style="background:hsl(220,15%,65%)"></span>Rain likely (>60%)<br>
+    <span style="font-size:10px">✅ Good · ⚠️ Mixed · 🔴 Old bolts</span>`;
+  return d;
+};
+legend.addTo(map);
+
+// Event listeners
+document.getElementById('dateInput').addEventListener('change', updateMap);
+document.getElementById('gradeMin').addEventListener('change', updateMap);
+document.getElementById('gradeMax').addEventListener('change', updateMap);
+document.getElementById('sunPref').addEventListener('change', updateMap);
+document.querySelectorAll('.bolt-checks input').forEach(c => c.addEventListener('change', updateMap));
+
+updateMap();
+</script>
+</body>
+</html>
